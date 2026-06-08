@@ -1,0 +1,52 @@
+# Scenes — one-tap states, also voice-triggerable. Entity IDs are placeholders.
+
+- id: good_morning
+  name: Good Morning
+  icon: mdi:weather-sunny
+  entities:
+    light.kitchen:
+      state: on
+      brightness_pct: 80
+    light.living_room:
+      state: on
+      brightness_pct: 60
+    climate.house:
+      preset_mode: home
+
+- id: movie_night
+  name: Movie Night
+  icon: mdi:movie-open
+  entities:
+    light.living_room:
+      state: on
+      brightness_pct: 15
+    light.kitchen:
+      state: off
+    media_player.living_room_tv:
+      state: on
+
+- id: good_night
+  name: Good Night
+  icon: mdi:weather-night
+  entities:
+    light.living_room:
+      state: off
+    light.kitchen:
+      state: off
+    light.basement:
+      state: off
+    lock.front_door:
+      state: locked
+
+- id: vacation
+  name: Vacation
+  icon: mdi:airplane
+  # The occupied-look light randomization is driven by the vacation script;
+  # this scene sets the baseline away state.
+  entities:
+    climate.house:
+      preset_mode: away
+    light.living_room:
+      state: off
+    light.kitchen:
+      state: off

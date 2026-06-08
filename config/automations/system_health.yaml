@@ -1,0 +1,62 @@
+# Watchdog: alert when a coordinator/key device goes unavailable, a battery is low,
+# or the UPS goes on-battery. Find problems before the family does.
+
+- id: system_health_device_unavailable
+  alias: "Watchdog — key device unavailable"
+  description: "A coordinator or key sensor became unavailable for 10+ minutes."
+  mode: single
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.basement_leak
+        - lock.front_door
+        - cover.garage_door
+        - camera.driveway
+      to: "unavailable"
+      for:
+        minutes: 10
+  action:
+    - service: !secret mobile_notify_target
+      data:
+        title: "⚠️ Device offline"
+        message: >-
+          {{ trigger.to_state.attributes.friendly_name | default(trigger.entity_id) }}
+          has been unavailable for 10 minutes.
+
+- id: system_health_low_battery
+  alias: "Watchdog — low battery"
+  description: "Any battery sensor below 20% once a day."
+  mode: single
+  trigger:
+    - platform: time
+      at: "09:00:00"
+  action:
+    - variables:
+        low: >-
+          {{ states.sensor
+             | selectattr('attributes.device_class', 'eq', 'battery')
+             | selectattr('state', 'is_number')
+             | selectattr('state', 'lt', '20')
+             | map(attribute='name') | list | join(', ') }}
+    - if:
+        - condition: template
+          value_template: "{{ low | length > 0 }}"
+      then:
+        - service: !secret mobile_notify_target
+          data:
+            title: "🔋 Low battery"
+            message: "Replace soon: {{ low }}"
+
+- id: system_health_ups_on_battery
+  alias: "Watchdog — UPS on battery (power outage)"
+  description: "UPS switched to battery → power outage in progress."
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.ups_on_battery
+      to: "on"
+  action:
+    - service: !secret mobile_notify_target
+      data:
+        title: "🔌 Power outage"
+        message: "The UPS is running on battery. The hub and network are protected for now."

@@ -1,0 +1,36 @@
+# Water-leak detection → phone push (critical) + Alexa announcement.
+# Entity IDs are placeholders — finalize in the build phase once sensors are joined.
+
+- id: water_leak_detected
+  alias: "Water leak detected"
+  description: "Any basement/laundry/water-heater leak sensor goes wet → alert everyone."
+  mode: single
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.basement_leak
+        - binary_sensor.laundry_leak
+        - binary_sensor.water_heater_leak
+      to: "on"
+  action:
+    - variables:
+        where: "{{ trigger.to_state.attributes.friendly_name | default('a sensor') }}"
+    # Critical phone push (bypasses silent/Do-Not-Disturb on iOS)
+    - service: !secret mobile_notify_target
+      data:
+        title: "💧 Water leak detected"
+        message: "{{ where }} is reporting water. Check immediately."
+        data:
+          push:
+            interruption-level: critical
+            sound:
+              name: default
+              critical: 1
+              volume: 1.0
+    # Spoken announcement on the Echos
+    - service: notify.alexa_media
+      data:
+        target: !secret alexa_announce_target
+        message: "Water detected. {{ where }} is wet."
+        data:
+          type: announce

@@ -1,0 +1,32 @@
+# Home Assistant secrets — never commit real values
+config/secrets.yaml
+secrets.yaml
+
+# Long-lived access tokens / credentials
+*.token
+tokens/
+*.pem
+*.key
+
+# Home Assistant runtime / generated files
+config/.storage/
+config/.cloud/
+config/home-assistant_v2.db*
+config/home-assistant.log*
+config/*.log
+config/.HA_VERSION
+config/tts/
+config/deps/
+config/.uuid
+
+# Backups
+backups/
+*.tar
+*.tar.gz
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/

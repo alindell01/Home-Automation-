@@ -1,0 +1,58 @@
+# Outdoor lighting on sun-based schedules + a holiday-light helper.
+# Porch/landscape on at sunset, off at sunrise (and at bedtime). Entity IDs are placeholders.
+
+- id: outdoor_lights_on_at_sunset
+  alias: "Outdoor lights — on at sunset"
+  description: "Porch + landscape lights come on at dusk."
+  mode: single
+  trigger:
+    - platform: sun
+      event: sunset
+      offset: "-00:15:00"   # 15 min before sunset
+  action:
+    - service: light.turn_on
+      target:
+        entity_id:
+          - light.porch
+          - light.landscape
+    # Holiday lights follow the same schedule when the helper is on.
+    - if:
+        - condition: state
+          entity_id: input_boolean.holiday_lights
+          state: "on"
+      then:
+        - service: switch.turn_on
+          target:
+            entity_id: switch.holiday_lights
+
+- id: outdoor_lights_off_at_sunrise
+  alias: "Outdoor lights — off at sunrise"
+  description: "Turn everything outdoor off at first light."
+  mode: single
+  trigger:
+    - platform: sun
+      event: sunrise
+  action:
+    - service: light.turn_off
+      target:
+        entity_id:
+          - light.porch
+          - light.landscape
+    - service: switch.turn_off
+      target:
+        entity_id: switch.holiday_lights
+
+- id: outdoor_landscape_off_at_bedtime
+  alias: "Outdoor lights — landscape off at bedtime"
+  description: "Kill decorative landscape lighting late; leave porch for security."
+  mode: single
+  trigger:
+    - platform: time
+      at: "23:30:00"
+  action:
+    - service: light.turn_off
+      target:
+        entity_id: light.landscape
+    - service: switch.turn_off
+      target:
+        entity_id: switch.holiday_lights

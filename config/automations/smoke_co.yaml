@@ -1,0 +1,33 @@
+# Smoke / CO detected → critical phone push + loud Alexa announcement.
+# Entity IDs are placeholders — finalize in the build phase.
+
+- id: smoke_co_detected
+  alias: "Smoke or CO detected"
+  description: "Any smoke/CO sensor trips → critical alert to all phones + Echos."
+  mode: single
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.smoke_co_main
+        - binary_sensor.smoke_co_basement
+      to: "on"
+  action:
+    - variables:
+        where: "{{ trigger.to_state.attributes.friendly_name | default('a detector') }}"
+    - service: !secret mobile_notify_target
+      data:
+        title: "🔥 Smoke / CO ALARM"
+        message: "{{ where }} is alarming. Evacuate and verify."
+        data:
+          push:
+            interruption-level: critical
+            sound:
+              name: default
+              critical: 1
+              volume: 1.0
+    - service: notify.alexa_media
+      data:
+        target: !secret alexa_announce_target
+        message: "Warning. Smoke or carbon monoxide detected at {{ where }}. Please evacuate."
+        data:
+          type: announce

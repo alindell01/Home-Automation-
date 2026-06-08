@@ -1,0 +1,43 @@
+# Home Assistant — base configuration
+# Templates for the build phase. Real values live in secrets.yaml (git-ignored);
+# copy secrets.yaml.example -> secrets.yaml and fill it in.
+
+default_config:
+
+# --- HTTP / remote access -------------------------------------------------
+# Remote access is via Nabu Casa (no port forwarding). use_x_forwarded_for +
+# trusted_proxies are set so HA sees real client IPs behind the Nabu Casa relay.
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 127.0.0.1
+    - ::1
+
+# --- Apple Home (HomeKit Bridge) ------------------------------------------
+# Curated entities only — keep the Apple Home app tidy. See docs/voice-and-apple-home.md.
+homekit:
+  - filter:
+      include_domains:
+        - light
+        - lock
+        - cover
+        - climate
+        - scene
+      # Add/exclude specific entities here once they exist, e.g.:
+      # exclude_entities:
+      #   - light.basement_utility
+
+# --- Split config into folders --------------------------------------------
+automation: !include_dir_merge_list automations/
+script: !include_dir_merge_named scripts/
+scene: !include scenes.yaml
+
+# --- Recommended helpers (uncomment/extend in build phase) ----------------
+# input_boolean:
+#   vacation_mode:
+#     name: Vacation Mode
+#     icon: mdi:airplane
+
+# --- Logging --------------------------------------------------------------
+logger:
+  default: info

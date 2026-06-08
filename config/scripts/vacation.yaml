@@ -1,0 +1,48 @@
+# Vacation mode toggle — sets the away baseline and randomizes lights for an "occupied" look.
+# Pair with an input_boolean.vacation_mode helper. Placeholders.
+
+vacation_on:
+  alias: "Vacation Mode On"
+  icon: mdi:airplane-takeoff
+  sequence:
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.vacation_mode
+    - service: scene.turn_on
+      target:
+        entity_id: scene.vacation
+
+vacation_off:
+  alias: "Vacation Mode Off"
+  icon: mdi:airplane-landing
+  sequence:
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.vacation_mode
+
+# Randomized "someone's home" lighting while vacation mode is on.
+# (Pair with an automation that calls this on a random-time trigger, or run on a loop.)
+vacation_occupied_look:
+  alias: "Vacation — occupied look"
+  icon: mdi:home-lightbulb
+  sequence:
+    - condition: state
+      entity_id: input_boolean.vacation_mode
+      state: "on"
+    - condition: state
+      entity_id: sun.sun
+      state: "below_horizon"
+    - service: light.turn_on
+      target:
+        entity_id: >-
+          {{ ['light.living_room', 'light.kitchen', 'light.bedroom'] | random }}
+      data:
+        brightness_pct: 50
+    - delay:
+        minutes: "{{ range(20, 60) | random }}"
+    - service: light.turn_off
+      target:
+        entity_id:
+          - light.living_room
+          - light.kitchen
+          - light.bedroom

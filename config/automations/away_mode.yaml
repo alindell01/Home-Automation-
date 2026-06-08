@@ -1,0 +1,51 @@
+# Away mode: when everyone leaves → start vacuum, lights off, HVAC setback, arm Alarmo.
+# Uses a person/zone group; entity IDs are placeholders.
+
+- id: away_mode_activate
+  alias: "Away mode — everyone left"
+  description: "No one home → vacuum runs, lights off, HVAC setback, security armed."
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: group.family
+      to: "not_home"
+      for:
+        minutes: 5
+  condition:
+    # Don't run vacuum/setback if it's nighttime (handled by night routine instead)
+    - condition: state
+      entity_id: sun.sun
+      state: "above_horizon"
+  action:
+    - service: vacuum.start
+      target:
+        entity_id: vacuum.dreame
+    - service: light.turn_off
+      target:
+        entity_id: all
+    - service: climate.set_preset_mode
+      target:
+        entity_id: climate.house
+      data:
+        preset_mode: "away"
+    - service: alarm_control_panel.alarm_arm_away
+      target:
+        entity_id: alarm_control_panel.alarmo
+
+- id: away_mode_deactivate
+  alias: "Away mode — someone returned"
+  description: "First person home → restore comfort + disarm."
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: group.family
+      to: "home"
+  action:
+    - service: climate.set_preset_mode
+      target:
+        entity_id: climate.house
+      data:
+        preset_mode: "home"
+    - service: alarm_control_panel.alarm_disarm
+      target:
+        entity_id: alarm_control_panel.alarmo

@@ -1,0 +1,31 @@
+# Night routine: at bedtime (or "Good Night" trigger) → lock up, check garage, lights off.
+# Entity IDs are placeholders.
+
+- id: night_routine_bedtime
+  alias: "Night routine — bedtime"
+  description: "Lock front door, warn if garage open, turn off downstairs lights."
+  mode: single
+  trigger:
+    - platform: time
+      at: "22:30:00"
+    # Also triggerable by the Good Night scene/script or a voice command.
+  action:
+    - service: lock.lock
+      target:
+        entity_id: lock.front_door
+    # If the garage is still open, alert instead of silently leaving it.
+    - if:
+        - condition: state
+          entity_id: cover.garage_door
+          state: "open"
+      then:
+        - service: !secret mobile_notify_target
+          data:
+            title: "🚗 Garage still open"
+            message: "It's bedtime and the garage door is open."
+    - service: light.turn_off
+      target:
+        entity_id:
+          - light.living_room
+          - light.kitchen
+          - light.basement
